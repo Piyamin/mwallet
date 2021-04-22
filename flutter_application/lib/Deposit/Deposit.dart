@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import "package:intl/intl.dart";
-import 'HomePage.dart';
+import 'package:flutter_application/User/HomePage.dart';
 class Deposit extends StatefulWidget {
   @override
   _DepositState createState() => _DepositState();
