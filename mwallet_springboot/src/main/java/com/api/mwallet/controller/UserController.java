@@ -1,5 +1,6 @@
 package com.api.mwallet.controller;
 
+// import com.api.mwallet.exception.Status;
 import com.api.mwallet.exception.UserNotFoundException;
 import com.api.mwallet.model.User;
 import com.api.mwallet.service.UserService;
@@ -8,9 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import javax.validation.Valid;
-import java.util.List;
-import java.util.NoSuchElementException;
 
+import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -20,7 +20,7 @@ public class UserController {
 // Get All 
 
     @GetMapping("")
-    public List<User> list() {
+    public Iterable<User> list() {
         return userService.listAllUser();
     }
 
@@ -52,4 +52,5 @@ public class UserController {
 
         userService.deleteUser(id);
     }
+
 }
