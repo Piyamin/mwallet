@@ -1,20 +1,131 @@
 import 'package:flutter/material.dart';
 import "package:intl/intl.dart";
 import 'package:flutter_application/User/HomePage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 class Transfer extends StatefulWidget {
+  int args;
+  Transfer(int args){
+    this.args = args;
+  }
   @override
-  _TransferState createState() => _TransferState();
+  _TransferState createState() => _TransferState(args);
 }
 
 class _TransferState extends State<Transfer> {
+   int args;
+  _TransferState(int args){
+    this.args = args;
+  }
+@override
+  Map dataUser;
+  Map dataWallet;
+  Map dataReceiver;
+  var first_name;
+  var last_name;
+  double amount;
+  double amountreceiver;
+  int walletId;
+  int userid;
+  int userreceiverid = 1;
+  // List userData;
 
+  getUser() async {
+    http.Response response =
+        await http.get('http://192.168.2.123:8080/users/$args');
+    debugPrint(response.body);
+    dataUser = json.decode(response.body);
+    print(dataUser['user_id']);
+
+    setState(() {
+      first_name = dataUser['first_name'];
+      last_name = dataUser['last_name'];
+    });
+    print(first_name);
+  }
+  getBalance() async {
+    http.Response response1 =
+        await http.get('http://192.168.2.123:8080/wallet/$args');
+    debugPrint(response1.body);
+    dataWallet = json.decode(response1.body);
+    print(dataWallet['wallet_list_amount']);
+    // debugPrint(dataWallet['wallet_list_id']);
+    setState(() {
+      amount = dataWallet['wallet_list_amount'].toDouble();
+      userid = dataWallet['user_id'];
+      walletId = dataWallet['wallet_list_id'];
+    });
+  }
+  getBalancereceiver() async {
+    http.Response response2 =
+        await http.get('http://192.168.2.123:8080/wallet/$userreceiverid');
+    debugPrint(response2.body);
+    dataReceiver = json.decode(response2.body);
+    print(dataReceiver['wallet_list_amount']);
+    // debugPrint(dataWallet['wallet_list_id']);
+    setState(() {
+      amountreceiver = dataReceiver['wallet_list_amount'].toDouble();
+    });
+  }
+ Future<http.Response> updateAmount(int walletId,double amount , int Userid) async {
+  final http.Response response = await http.put(
+    Uri.parse('http://192.168.2.123:8080/wallet/$walletId'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode({
+      'wallet_list_id': walletId,
+      'wallet_list_amount': amount,
+      'user_id':Userid,
+    }),
+  );
+}
+ Future<http.Response> updateReceiver(double amount , int receiver) async {
+  final http.Response response = await http.put(
+    Uri.parse('http://192.168.2.123:8080/wallet/$receiver'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode({
+      'wallet_list_id': receiver,
+      'wallet_list_amount': amount,
+      'user_id':receiver,
+    }),
+  );
+}
+ Future<http.Response> addTransection(int walletId,double amount , int Userid,int receiver,String description) async {
+  final http.Response response = await http.post(
+    Uri.parse('http://192.168.2.123:8080/wallet/transection'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode({
+        "transection_receiver": receiver,
+        "user_id": Userid,
+        "wallet_list_id": walletId,
+        "transection_description": description,
+        "financial_id": 2,
+        "transection_amount": amount
+    }),
+  );
+}
   @override
+  void initState() {
+    super.initState();
+    getUser();
+    getBalance();
+    getBalancereceiver();
+  }
   Widget build(BuildContext context) {
+    TextEditingController _amount = new TextEditingController();
+    TextEditingController _account = new TextEditingController();
+    TextEditingController _description = new TextEditingController();
     return Scaffold(
-      body: Container(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
         child: Wrap(
           children: <Widget>[
-            
             Container(
                 padding: const EdgeInsets.only(left:15.0,right: 15.0,top:50,bottom: 0),
                 child: FlatButton(
@@ -46,6 +157,7 @@ class _TransferState extends State<Transfer> {
                     width: 500.0,
                     height: 100.0,
                     child: TextField(
+                    controller: _amount,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
@@ -62,6 +174,7 @@ class _TransferState extends State<Transfer> {
                     width: 500.0,
                     height: 100.0,
                     child: TextField(
+                    controller: _account,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
@@ -78,7 +191,7 @@ class _TransferState extends State<Transfer> {
                     width: 500.0,
                     height: 100.0,
                     child: TextField(
-                    // keyboardType: TextInputType.number,
+                    controller: _description,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'Description',
@@ -97,8 +210,20 @@ class _TransferState extends State<Transfer> {
                     color: Colors.blue, borderRadius: BorderRadius.circular(10)),
                     child: FlatButton(
                       onPressed: () {
+                        setState((){
+                         amount = amount - double.parse(_amount.text);
+                         amountreceiver = amountreceiver + (double.parse(_amount.text));
+                         userreceiverid = int.parse(_account.text);
+                          // Set state like this'
+
+                        });
+                        updateAmount(walletId,amount,userid);
+                        addTransection(walletId,double.parse(_amount.text),userid,int.parse(_account.text),_description.text);
+                        getBalancereceiver();
+                        updateReceiver(amountreceiver, int.parse(_account.text));
+                        print(amount);
                         Navigator.push(
-                            context, MaterialPageRoute(builder: (_) => HomePage()));
+                            context, MaterialPageRoute(builder: (_) => HomePage(userid)));
                       },
                       child: Text(
                         'CONFIRM',
@@ -137,7 +262,7 @@ class _TransferState extends State<Transfer> {
                       width: 500,
                       height:100,
                       child:Align(alignment:Alignment(-0.8,-27),
-                      child:Text('Piyamin', 
+                      child:Text('$first_name', 
                       style: TextStyle(color: Colors.black, fontSize: 30),),
                       ),
                       ),
@@ -148,7 +273,7 @@ class _TransferState extends State<Transfer> {
                       width: 500,
                       height:100,
                       child:Align(alignment:Alignment(-0.8,-29),
-                      child:Text('Chaima', 
+                      child:Text('$last_name', 
                       style: TextStyle(color: Colors.black, fontSize: 30),),
                       ),
                       ),
@@ -171,7 +296,7 @@ class _TransferState extends State<Transfer> {
                       width: 500,
                       height:100,
                       child:Align(alignment:Alignment(0.9,-36),
-                      child:Text(NumberFormat("#,###").format(123456789), 
+                      child:Text(NumberFormat("#,###").format(amount), 
                       style: TextStyle(color: Colors.blue, fontSize: 30,fontWeight: FontWeight.bold),),
                       ),
                       ),

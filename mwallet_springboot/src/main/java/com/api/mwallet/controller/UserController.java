@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import javax.validation.Valid;
 
+import java.math.BigDecimal;
 import java.util.NoSuchElementException;
 @RestController
 @RequestMapping("/users")
@@ -51,6 +52,19 @@ public class UserController {
     public void delete(@PathVariable Integer id) {
 
         userService.deleteUser(id);
+    }
+    
+    //  findby name
+    @GetMapping("/maxid")
+    public BigDecimal getMaxid() {
+            BigDecimal user = userService.getMaxid();
+            return user;
+    }
+    
+    @GetMapping("/username")
+    public String getUser_name() {
+            String user = userService.getUserName();
+            return user;
     }
 
 }

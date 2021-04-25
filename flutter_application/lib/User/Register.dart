@@ -1,14 +1,66 @@
 import 'package:flutter/material.dart';
 import 'Homepage.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class Register extends StatefulWidget {
   @override
+  
   _RegisterState createState() => _RegisterState();
 }
   
   class _RegisterState extends State<Register> {
+  Future<http.Response> addUser(String firstname,String lastname, String username, String password) async {
+    print(firstname);
+    final http.Response response = await http.post(
+      Uri.parse('http://192.168.2.123:8080/users/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+          "first_name": firstname,
+          "last_name": lastname,
+          "user_name": username,
+          "user_password": password
+      }),
+    );
+  }
+    int dataUser;
+  getUser() async {
+    http.Response response =
+        await http.get('http://192.168.2.123:8080/users/maxid');
+    debugPrint(response.body);
+    dataUser = json.decode(response.body);
+    dataUser = dataUser;
+    print(dataUser);
+  }
+  Future<http.Response> addWallet(int user_id) async {
+    user_id = user_id+1;
+    // print(firstname);
+    final http.Response response = await http.post(
+      Uri.parse('http://192.168.2.123:8080/wallet/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        "wallet_list_amount": 0,
+        "user_id": user_id
+      }),
+    );
+  }
+
+ @override
+  void initState() {
+    super.initState();
+    getUser();
+  }
+
   @override
   Widget build(BuildContext context) {
+    TextEditingController _firstname = new TextEditingController();
+    TextEditingController _lastname = new TextEditingController();
+    TextEditingController _username = new TextEditingController();
+    TextEditingController _password = new TextEditingController();
+    
    return Scaffold(
      backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -29,6 +81,7 @@ class Register extends StatefulWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
+                controller: _firstname,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'FIRSTNAME',
@@ -38,6 +91,7 @@ class Register extends StatefulWidget {
              Padding(
               padding: EdgeInsets.symmetric(horizontal: 15,vertical: 15),
               child: TextField(
+                controller: _lastname,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'LASTNAME',
@@ -47,6 +101,7 @@ class Register extends StatefulWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15,vertical: 15),
               child: TextField(
+                controller: _username,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'USERNAME',
@@ -58,8 +113,8 @@ class Register extends StatefulWidget {
                   left: 15.0, right: 15.0, top: 15, bottom: 15),
               //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
-
                 obscureText: true,
+                controller: _password,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'PASSWORD',
@@ -88,8 +143,10 @@ class Register extends StatefulWidget {
                   color: Colors.blue, borderRadius: BorderRadius.circular(20)),
               child: FlatButton(
                 onPressed: () {
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => HomePage()));
+                  addUser(_firstname.text, _lastname.text, _username.text, _password.text);
+                  addWallet(dataUser);
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => HomePage((dataUser+1))));
                 },
                 child: Text(
                   'Login',

@@ -7,6 +7,7 @@ import com.api.mwallet.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import javax.transaction.Transactional;
 
@@ -26,6 +27,12 @@ public class UserService  {
 
     public User getUser(Integer id) {
         return userRepository.findById(id).get();
+    }
+    public BigDecimal getMaxid() {
+        return userRepository.max();
+    }
+    public String getUserName() {
+        return userRepository.findByUser_name();
     }
 
     public void deleteUser(Integer id) {

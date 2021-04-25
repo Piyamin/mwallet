@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-
 import 'User/Register.dart';
 import 'User/HomePage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -12,6 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Connect to locolhost',
       home: LoginDemo(),
     );
   }
@@ -21,8 +24,20 @@ class LoginDemo extends StatefulWidget {
   @override
   _LoginDemoState createState() => _LoginDemoState();
 }
-
 class _LoginDemoState extends State<LoginDemo> {
+int dataUser;
+getUser() async {
+    http.Response response =
+        await http.get('http://192.168.2.123:8080/users/username');
+    debugPrint(response.body);
+    dataUser = json.decode(response.body);
+    print(dataUser);
+  }
+ @override
+  void initState() {
+    super.initState();
+    getUser();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +88,7 @@ class _LoginDemoState extends State<LoginDemo> {
               child: FlatButton(
                 onPressed: () {
                   Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => HomePage()));
+                      context, MaterialPageRoute(builder: (_) => HomePage(dataUser)));
                 },
                 child: Text(
                   'Login',
